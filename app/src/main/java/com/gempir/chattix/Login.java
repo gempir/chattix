@@ -24,7 +24,6 @@ class Login extends AppCompatActivity {
 
     private OkHttpClient client = new OkHttpClient();
     private Pattern pattern = Pattern.compile("#access_token=(.*)&");
-    private Login currentActivity = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,11 +44,10 @@ class Login extends AppCompatActivity {
                 Matcher matcher = pattern.matcher(request.getUrl().toString());
 
                 if (matcher.find()) {
-                    TwitchUserData.setAccessToken(matcher.group(1));
-                    System.out.println(TwitchUserData.getAccessToken());
-                    setUsername(TwitchApi.buildUsernameUrlString(TwitchUserData.getAccessToken()));
+                    Factory.getTwitchUserData().setAccessToken(matcher.group(1));
+                    setUsername(TwitchApi.buildUsernameUrlString(matcher.group(1)));
 
-                    Intent myIntent = new Intent(currentActivity, Chat.class);
+                    Intent myIntent = new Intent(Login.this, Chat.class);
                     startActivity(myIntent);
                 }
 
@@ -74,7 +72,7 @@ class Login extends AppCompatActivity {
             public void onResponse(Call call, final Response response) {
                 try {
                     JSONObject doc = new JSONObject(response.body().toString());
-                    TwitchUserData.setUsername(doc.getJSONObject("token").getString("user_name"));
+                    Factory.getTwitchUserData().setUsername(doc.getJSONObject("token").getString("user_name"));
                 } catch (JSONException e) {
                     Log.e("Login", e.getMessage());
                 }

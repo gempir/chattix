@@ -2,9 +2,9 @@ package com.gempir.chattix;
 
 import android.net.Uri;
 
-class TwitchApi {
+public class TwitchApi {
     public static Uri BASE_URI = Uri.parse("https://api.twitch.tv/kraken/");
-    public static Uri BASE_CHAT_URI = Uri.parse("https://api.twitch.tv/kraken/chat");
+    public static Uri BASE_CHAT_URI = Uri.parse("https://api.twitch.tv/kraken/Chat");
     public static String EMOTICON_URI = "http://static-cdn.jtvnw.net/emoticons/v1/";
     public static String EMOTE_SMALL = "1.0";
     public static String EMOTE_MEDIUM = "2.0";

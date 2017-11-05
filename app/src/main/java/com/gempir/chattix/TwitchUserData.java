@@ -1,22 +1,22 @@
 package com.gempir.chattix;
 
-class TwitchUserData {
-    private static String accessToken;
-    private static String username;
+public class TwitchUserData {
+    private String accessToken;
+    private String username;
 
-    public static void setAccessToken(String accessToken) {
-        TwitchUserData.accessToken = accessToken;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
-    public static void setUsername(String username) {
-        TwitchUserData.username = username;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public static String getAccessToken() {
-        return accessToken;
+    public String getAccessToken() {
+        return this.accessToken;
     }
 
-    public static String getUsername() {
-        return username;
+    public String getUsername() {
+        return this.username;
     }
 }
