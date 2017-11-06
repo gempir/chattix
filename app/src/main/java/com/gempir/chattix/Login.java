@@ -19,11 +19,24 @@ import java.util.regex.Pattern;
 
 import android.content.Intent;
 
+import com.squareup.otto.Bus;
+
 
 class Login extends AppCompatActivity {
 
     private OkHttpClient client = new OkHttpClient();
     private Pattern pattern = Pattern.compile("#access_token=(.*)&");
+
+    public Login()
+    {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                new IrcBot();
+            }
+        };
+        new Thread(runnable).start();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +85,9 @@ class Login extends AppCompatActivity {
             public void onResponse(Call call, final Response response) {
                 try {
                     JSONObject doc = new JSONObject(response.body().toString());
-                    Factory.getTwitchUserData().setUsername(doc.getJSONObject("token").getString("user_name"));
+                    String username = doc.getJSONObject("token").getString("user_name");
+                    Factory.getTwitchUserData().setUsername(username);
+                    BusProvider.getInstance().post(new LoginEvent(username, Factory.getTwitchUserData().getAccessToken()));
                 } catch (JSONException e) {
                     Log.e("Login", e.getMessage());
                 }

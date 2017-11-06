@@ -11,14 +11,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
-import android.widget.TextView;
-
-import com.cavariux.twitchirc.Chat.Channel;
-import com.cavariux.twitchirc.Chat.User;
 
 public class Chat extends AppCompatActivity {
 
     private ConstraintLayout chatLayout;
+
+    public Chat()
+    {
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +67,9 @@ public class Chat extends AppCompatActivity {
 
         chatLayout.addView(channelScrollView);
 
-        Irc irc = new Irc(channel) {
+        BusProvider.getInstance().post(new JoinChannelEvent(channel));
+        //new Irc().execute(channel);
+//        IrcBot irc = new IrcBot(channel) {
 //            @Override
 //            final public void onMessage(User user, Channel channel, String message)
 //            {
@@ -75,7 +78,7 @@ public class Chat extends AppCompatActivity {
 //                textView.setText(String.format("%s: %s", user.toString(), message));
 //                channelScrollView.addView(textView);
 //            }
-        };
+//        };
 
 
 
