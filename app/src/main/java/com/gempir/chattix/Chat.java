@@ -16,11 +16,6 @@ public class Chat extends AppCompatActivity {
 
     private ConstraintLayout chatLayout;
 
-    public Chat()
-    {
-
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,7 +62,7 @@ public class Chat extends AppCompatActivity {
 
         chatLayout.addView(channelScrollView);
 
-        BusProvider.getInstance().post(new JoinChannelEvent(channel));
+        Factory.getBus().post(new JoinChannelEvent(channel));
         //new Irc().execute(channel);
 //        IrcBot irc = new IrcBot(channel) {
 //            @Override

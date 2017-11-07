@@ -11,18 +11,19 @@ class IrcBot {
 
     public IrcBot()
     {
-        BusProvider.getInstance().register(this);
+        System.out.println("IrcBot instance");
+        Factory.getBus().register(this);
     }
 
     @Subscribe
     public void onLoginEvent(LoginEvent loginEvent)
     {
-        Log.d("IrcBot", "logged in: " + loginEvent.getUsername() + ", " + loginEvent.getAccessToken());
+        System.out.println("logged in: " + loginEvent.getUsername() + ", " + loginEvent.getAccessToken());
     }
 
     @Subscribe
     public void onJoinChannelEvent(JoinChannelEvent joinChannelEvent)
     {
-        Log.d("IrcBot", "JOINING " + joinChannelEvent.getChannel());
+        System.out.println("JOINING " + joinChannelEvent.getChannel());
     }
 }

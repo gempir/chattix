@@ -19,24 +19,10 @@ import java.util.regex.Pattern;
 
 import android.content.Intent;
 
-import com.squareup.otto.Bus;
-
-
 class Login extends AppCompatActivity {
 
     private OkHttpClient client = new OkHttpClient();
     private Pattern pattern = Pattern.compile("#access_token=(.*)&");
-
-    public Login()
-    {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                new IrcBot();
-            }
-        };
-        new Thread(runnable).start();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,9 +45,6 @@ class Login extends AppCompatActivity {
                 if (matcher.find()) {
                     Factory.getTwitchUserData().setAccessToken(matcher.group(1));
                     setUsername(TwitchApi.buildUsernameUrlString(matcher.group(1)));
-
-                    Intent myIntent = new Intent(Login.this, Chat.class);
-                    startActivity(myIntent);
                 }
 
                 return super.shouldOverrideUrlLoading(view, request);
@@ -83,13 +66,19 @@ class Login extends AppCompatActivity {
 
             @Override
             public void onResponse(Call call, final Response response) {
-                try {
-                    JSONObject doc = new JSONObject(response.body().toString());
-                    String username = doc.getJSONObject("token").getString("user_name");
-                    Factory.getTwitchUserData().setUsername(username);
-                    BusProvider.getInstance().post(new LoginEvent(username, Factory.getTwitchUserData().getAccessToken()));
-                } catch (JSONException e) {
-                    Log.e("Login", e.getMessage());
+                if (response.isSuccessful()) {
+                    try {
+                        JSONObject doc = new JSONObject(response.body().string());
+                        String username = doc.getJSONObject("token").getString("user_name");
+                        Factory.getTwitchUserData().setUsername(username);
+                        Factory.getBus().post(new LoginEvent(username, Factory.getTwitchUserData().getAccessToken()));
+                        Intent myIntent = new Intent(Login.this, Chat.class);
+                        startActivity(myIntent);
+                    } catch (Exception e) {
+                        Log.e("Login", e.getMessage());
+                    }
+                } else {
+                    return;
                 }
             }
         });
