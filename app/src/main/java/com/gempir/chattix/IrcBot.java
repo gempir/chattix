@@ -1,8 +1,5 @@
 package com.gempir.chattix;
 
-
-import android.util.Log;
-
 import com.squareup.otto.Subscribe;
 
 class IrcBot {
@@ -11,7 +8,6 @@ class IrcBot {
 
     public IrcBot()
     {
-        System.out.println("IrcBot instance");
         Factory.getBus().register(this);
     }
 

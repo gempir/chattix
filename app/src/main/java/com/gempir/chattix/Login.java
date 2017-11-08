@@ -29,6 +29,8 @@ class Login extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        new IrcBot();
+
         TabLayout tabs = findViewById(R.id.tabs);
         TabLayout.Tab loginTab = tabs.newTab();
         loginTab.setText("Login");
@@ -39,7 +41,6 @@ class Login extends AppCompatActivity {
         twitchLogin.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-
                 Matcher matcher = pattern.matcher(request.getUrl().toString());
 
                 if (matcher.find()) {
@@ -70,8 +71,10 @@ class Login extends AppCompatActivity {
                     try {
                         JSONObject doc = new JSONObject(response.body().string());
                         String username = doc.getJSONObject("token").getString("user_name");
+
                         Factory.getTwitchUserData().setUsername(username);
                         Factory.getBus().post(new LoginEvent(username, Factory.getTwitchUserData().getAccessToken()));
+
                         Intent myIntent = new Intent(Login.this, Chat.class);
                         startActivity(myIntent);
                     } catch (Exception e) {
