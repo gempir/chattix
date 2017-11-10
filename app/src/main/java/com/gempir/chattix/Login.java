@@ -24,14 +24,11 @@ import javax.inject.Inject;
 
 class Login extends AppCompatActivity {
 
-    @Inject
-    public OkHttpClient okHttpClient;
+    private OkHttpClient okHttpClient = new OkHttpClient();
 
-    @Inject
-    public Bus bus;
+    private Bus bus = Factory.getBus();
 
-    @Inject
-    public AppDatabase appDatabase;
+    private AppDatabase appDatabase = Factory.getAppDatabase(Login.this);
 
     private Pattern pattern = Pattern.compile("#access_token=(.*)&");
 
@@ -41,7 +38,6 @@ class Login extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        new IrcBot();
 
         TabLayout tabs = findViewById(R.id.tabs);
         TabLayout.Tab loginTab = tabs.newTab();
@@ -80,8 +76,6 @@ class Login extends AppCompatActivity {
             public void onResponse(Call call, final Response response) {
                 if (response.isSuccessful()) {
                     try {
-                        System.out.println(response.body().string());
-
 
                         JSONObject doc = new JSONObject(response.body().string());
 
@@ -93,20 +87,19 @@ class Login extends AppCompatActivity {
 
                         appDatabase.userDao().setUser(user);
 
-//                        bus.post(new LoginEvent(username, accessToken);
-
-                        System.out.println(appDatabase.userDao().getUser().id);
-
-                        Intent myIntent = new Intent(Login.this, Chat.class);
-                        startActivity(myIntent);
+                        openChat();
                     } catch (Exception e) {
-                        Log.e("Login", e.getMessage());
+                        Log.e("LoginMeme", e.getMessage());
                     }
                 } else {
                     return;
                 }
             }
         });
+    }
 
+    private void openChat() {
+        Intent myIntent = new Intent(Login.this, Chat.class);
+        startActivity(myIntent);
     }
 }
