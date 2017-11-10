@@ -3,7 +3,6 @@ package com.gempir.chattix;
 import com.squareup.otto.Subscribe;
 
 class IrcBot {
-    private TwitchUserData twitchUserData = Factory.getTwitchUserData();
 
 
     public IrcBot()

@@ -4,6 +4,7 @@ import android.net.Uri;
 
 public class TwitchApi {
     public static Uri BASE_URI = Uri.parse("https://api.twitch.tv/kraken/");
+    public static Uri USER_URI = Uri.parse("https://api.twitch.tv/kraken/user");
     public static Uri BASE_CHAT_URI = Uri.parse("https://api.twitch.tv/kraken/Chat");
     public static String EMOTICON_URI = "http://static-cdn.jtvnw.net/emoticons/v1/";
     public static String EMOTE_SMALL = "1.0";
@@ -19,11 +20,9 @@ public class TwitchApi {
             .appendQueryParameter("redirect_uri", REDIRECT_URL)
             .appendQueryParameter("scope", "user_read chat_login").build().toString();
 
-    public static Uri USERNAME_REQUEST = BASE_URI.buildUpon().appendQueryParameter("client_id", CLIENT_ID).build();
-
     public static String buildUsernameUrlString(String accessToken)
     {
-        return BASE_URI
+        return USER_URI
                 .buildUpon()
                 .appendQueryParameter("client_id", CLIENT_ID)
                 .appendQueryParameter("oauth_token", accessToken)

@@ -1,22 +1,18 @@
 package com.gempir.chattix;
 
+import android.arch.persistence.room.Room;
+import android.content.Context;
+
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
 public class Factory {
 
-    private static TwitchUserData userData;
 
     private static Bus bus;
 
-    public static TwitchUserData getTwitchUserData()
-    {
-        if (userData == null) {
-            userData = new TwitchUserData();
+    private static AppDatabase appDatabase;
 
-        }
-        return userData;
-    }
 
     public static Bus getBus()
     {
@@ -24,5 +20,13 @@ public class Factory {
             bus = new Bus(ThreadEnforcer.ANY);
         }
         return bus;
+    }
+
+    public static AppDatabase getAppDatabase(Context ctx)
+    {
+        if (appDatabase == null) {
+            appDatabase = Room.databaseBuilder(ctx, AppDatabase.class, "userDB").build();
+        }
+        return appDatabase;
     }
 }

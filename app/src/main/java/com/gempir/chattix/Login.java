@@ -10,7 +10,6 @@ import android.webkit.WebViewClient;
 
 import okhttp3.*;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -19,10 +18,23 @@ import java.util.regex.Pattern;
 
 import android.content.Intent;
 
+import com.squareup.otto.Bus;
+
+import javax.inject.Inject;
+
 class Login extends AppCompatActivity {
 
-    private OkHttpClient client = new OkHttpClient();
+    @Inject
+    public OkHttpClient okHttpClient;
+
+    @Inject
+    public Bus bus;
+
+    @Inject
+    public AppDatabase appDatabase;
+
     private Pattern pattern = Pattern.compile("#access_token=(.*)&");
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +56,7 @@ class Login extends AppCompatActivity {
                 Matcher matcher = pattern.matcher(request.getUrl().toString());
 
                 if (matcher.find()) {
-                    Factory.getTwitchUserData().setAccessToken(matcher.group(1));
-                    setUsername(TwitchApi.buildUsernameUrlString(matcher.group(1)));
+                    fillUserData(matcher.group(1));
                 }
 
                 return super.shouldOverrideUrlLoading(view, request);
@@ -56,10 +67,10 @@ class Login extends AppCompatActivity {
         twitchLogin.loadUrl(TwitchApi.OAUTH_URL);
     }
 
-    private void setUsername(String url) {
-        Request request = new Request.Builder().url(url).build();
+    private void fillUserData(final String accessToken) {
+        Request request = new Request.Builder().url(TwitchApi.buildUsernameUrlString(accessToken)).build();
 
-        client.newCall(request).enqueue(new Callback() {
+        okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.e("Login", e.getMessage());
@@ -69,11 +80,22 @@ class Login extends AppCompatActivity {
             public void onResponse(Call call, final Response response) {
                 if (response.isSuccessful()) {
                     try {
-                        JSONObject doc = new JSONObject(response.body().string());
-                        String username = doc.getJSONObject("token").getString("user_name");
+                        System.out.println(response.body().string());
 
-                        Factory.getTwitchUserData().setUsername(username);
-                        Factory.getBus().post(new LoginEvent(username, Factory.getTwitchUserData().getAccessToken()));
+
+                        JSONObject doc = new JSONObject(response.body().string());
+
+                        User user = new User();
+                        user.id = doc.getInt("_id");
+                        user.name = doc.getString("name");
+                        user.displayName = doc.getString("display_name");
+                        user.accessToken = accessToken;
+
+                        appDatabase.userDao().setUser(user);
+
+//                        bus.post(new LoginEvent(username, accessToken);
+
+                        System.out.println(appDatabase.userDao().getUser().id);
 
                         Intent myIntent = new Intent(Login.this, Chat.class);
                         startActivity(myIntent);
