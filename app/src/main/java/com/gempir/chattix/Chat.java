@@ -67,9 +67,6 @@ public class Chat extends AppCompatActivity {
 
         chatLayout.addView(channelScrollView);
 
-        Factory.getBus().post(new JoinChannelEvent(channel));
-
-
         channelScrollView.setVisibility(View.VISIBLE);
     }
 

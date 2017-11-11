@@ -18,26 +18,23 @@ import java.util.regex.Pattern;
 
 import android.content.Intent;
 
-import com.squareup.otto.Bus;
-
-import javax.inject.Inject;
-
 class Login extends AppCompatActivity {
 
     private OkHttpClient okHttpClient = new OkHttpClient();
 
-    private Bus bus = Factory.getBus();
-
     private AppDatabase appDatabase = Factory.getAppDatabase(Login.this);
 
     private Pattern pattern = Pattern.compile("#access_token=(.*)&");
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        if (isLoggedIn()) {
+            openChat();
+            return;
+        }
 
         TabLayout tabs = findViewById(R.id.tabs);
         TabLayout.Tab loginTab = tabs.newTab();
@@ -61,6 +58,10 @@ class Login extends AppCompatActivity {
 
         twitchLogin.getSettings().setJavaScriptEnabled(true);
         twitchLogin.loadUrl(TwitchApi.OAUTH_URL);
+    }
+
+    private boolean isLoggedIn() {
+        return appDatabase.userDao().getUser() != null;
     }
 
     private void fillUserData(final String accessToken) {
