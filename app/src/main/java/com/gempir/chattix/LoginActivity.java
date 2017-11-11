@@ -18,11 +18,14 @@ import java.util.regex.Pattern;
 
 import android.content.Intent;
 
-class Login extends AppCompatActivity {
+import com.gempir.chattix.persistence.AppDatabase;
+import com.gempir.chattix.persistence.User;
+
+public class LoginActivity extends AppCompatActivity {
 
     private OkHttpClient okHttpClient = new OkHttpClient();
 
-    private AppDatabase appDatabase = Factory.getAppDatabase(Login.this);
+    private AppDatabase appDatabase = Factory.getAppDatabase(LoginActivity.this);
 
     private Pattern pattern = Pattern.compile("#access_token=(.*)&");
 
@@ -70,7 +73,7 @@ class Login extends AppCompatActivity {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                Log.e("Login", e.getMessage());
+                Log.e("LoginActivity", e.getMessage());
             }
 
             @Override
@@ -100,7 +103,7 @@ class Login extends AppCompatActivity {
     }
 
     private void openChat() {
-        Intent myIntent = new Intent(Login.this, Chat.class);
+        Intent myIntent = new Intent(LoginActivity.this, ChatActivity.class);
         startActivity(myIntent);
     }
 }

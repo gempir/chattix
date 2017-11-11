@@ -1,12 +1,13 @@
-package com.gempir.chattix;
+package com.gempir.chattix.persistence;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 
 @Entity
 public class User {
-
-    public @PrimaryKey int id;
+    
+    @PrimaryKey
+    public int id;
 
     public String displayName;
 

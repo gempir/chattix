@@ -1,7 +1,9 @@
 package com.gempir.chattix;
 
 import android.app.AlertDialog;
+import android.arch.lifecycle.Observer;
 import android.content.DialogInterface;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -12,11 +14,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 
-public class Chat extends AppCompatActivity {
+import com.gempir.chattix.persistence.Channel;
+
+import java.util.List;
+
+public class ChatActivity extends AppCompatActivity {
 
     private ConstraintLayout chatLayout;
 
-    public Chat()
+    public ChatActivity()
     {
         new IrcBot();
     }
@@ -27,16 +33,24 @@ public class Chat extends AppCompatActivity {
         setContentView(R.layout.activity_chat);
 
         chatLayout = findViewById(R.id.chatLayout);
-
         Button addChannel = findViewById(R.id.addChannel);
+
+        loadChannels();
+
+        Factory.getAppDatabase(ChatActivity.this).channelsDao().getAllChannelsSync().observe(this, new Observer<List<Channel>>() {
+            @Override
+            public void onChanged(@Nullable List<Channel> channels) {
+                loadChannels();
+            }
+        });
 
         addChannel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(Chat.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(ChatActivity.this);
                 builder.setTitle("Join Channel");
 
-                final EditText input = new EditText(Chat.this);
+                final EditText input = new EditText(ChatActivity.this);
                 input.setInputType(InputType.TYPE_CLASS_TEXT);
                 builder.setView(input);
 
@@ -58,16 +72,31 @@ public class Chat extends AppCompatActivity {
         });
     }
 
-    private void joinChannel(String channel) {
+    private void loadChannels() {
+
+        List<Channel> channels = Factory.getAppDatabase(ChatActivity.this).channelsDao().getAllChannels();
+
         TabLayout tabLayout = findViewById(R.id.tabs);
-        tabLayout.addTab(tabLayout.newTab().setText(channel));
+        tabLayout.removeAllTabs();
 
-        final ScrollView channelScrollView = new ScrollView(this);
-        channelScrollView.setPadding(dpToPx(6), dpToPx(48), dpToPx(6), 0);
+        for (Channel channel : channels) {
 
-        chatLayout.addView(channelScrollView);
+            tabLayout.addTab(tabLayout.newTab().setText(channel.name));
 
-        channelScrollView.setVisibility(View.VISIBLE);
+            final ScrollView channelScrollView = new ScrollView(this);
+            channelScrollView.setPadding(dpToPx(6), dpToPx(48), dpToPx(6), 0);
+
+            chatLayout.addView(channelScrollView);
+
+            channelScrollView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void joinChannel(String channel) {
+        Channel channelObj = new Channel();
+        channelObj.name = channel;
+
+        Factory.getAppDatabase(ChatActivity.this).channelsDao().insertChannel(channelObj);
     }
 
     private int dpToPx(int dp) {
