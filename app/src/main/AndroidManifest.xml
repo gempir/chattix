@@ -21,8 +21,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".ChatActivity"></activity>
-
-        <service android:enabled="true" android:name=".IrcService" android:process=".background"></service>
     </application>
 
 </manifest>

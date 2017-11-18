@@ -40,25 +40,26 @@ public class IrcService extends Service {
 
     public void joinChannel(final String channel) {
 
-        final Thread t = new Thread() {
-            @Override
-            public void run() {
-                final Twirk twirk = new TwirkBuilder(channel, user.name, "oauth" + user.accessToken).build();
+//        final Thread t = new Thread() {
+//            @Override
+//            public void run() {
+//
+//            }
+//        };
+//        t.start();
 
-                twirk.addIrcListener( new TwirkListenerBaseImpl() {
-                    public void onPrivMsg(TwitchUser sender, TwitchMessage message) {
-                        twirk.channelMessage("pong " + sender.getDisplayName() );
-                    }
-                } );
+        final Twirk twirk = new TwirkBuilder(channel, user.name, "oauth" + user.accessToken).build();
 
-                try {
-                    // MAIN THREAD
-                    twirk.connect();
-                } catch (Exception e) {
-                    Log.e("IrcService", "e: " + e.toString());
-                }
+        twirk.addIrcListener( new TwirkListenerBaseImpl() {
+            public void onPrivMsg(TwitchUser sender, TwitchMessage message) {
+                twirk.channelMessage("pong " + sender.getDisplayName() );
             }
-        };
-        t.start();
+        } );
+
+        try {
+            twirk.connect();
+        } catch (Exception e) {
+            Log.e("IrcService", "e: " + e.toString());
+        }
     }
 }

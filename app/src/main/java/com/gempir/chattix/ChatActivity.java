@@ -37,8 +37,8 @@ public class ChatActivity extends AppCompatActivity {
 
 
         Intent intent = new Intent(this, IrcService.class);
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         startService(intent);
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
 
 
         chatLayout = findViewById(R.id.chatLayout);
@@ -105,6 +105,7 @@ public class ChatActivity extends AppCompatActivity {
         Channel channelObj = new Channel();
         channelObj.name = channel;
 
+        ircService.joinChannel(channel);
         Factory.getAppDatabase(ChatActivity.this).channelsDao().insertChannel(channelObj);
     }
 
@@ -117,7 +118,6 @@ public class ChatActivity extends AppCompatActivity {
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
-            // why does this not work pajaL
             IrcService.LocalBinder binder = (IrcService.LocalBinder) service;
             ircService = binder.getService();
             ircBound = true;
