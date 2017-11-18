@@ -36,4 +36,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
     compile 'com.squareup.okhttp3:okhttp:3.8.1'
+
+    compile 'com.github.gikkman:Java-Twirk:0.3'
 }
