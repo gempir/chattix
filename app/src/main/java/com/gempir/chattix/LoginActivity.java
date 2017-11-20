@@ -1,6 +1,7 @@
 package com.gempir.chattix;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -34,17 +35,24 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        if (isLoggedIn()) {
-            openChat();
-            return;
-        }
-
         TabLayout tabs = findViewById(R.id.tabs);
         TabLayout.Tab loginTab = tabs.newTab();
         loginTab.setText("Login");
         tabs.addTab(loginTab);
 
+        if (isLoggedIn()) {
+            openChat();
+        } else {
+            prepareLogin();
+        }
+    }
+
+    /**
+     * Opens Twitch Login page in WebView for obtaining OAuth Token.
+     */
+    private void prepareLogin() {
         WebView twitchLogin = findViewById(R.id.twitchLogin);
+        twitchLogin.getSettings().setJavaScriptEnabled(true);
 
         twitchLogin.setWebViewClient(new WebViewClient() {
             @Override
@@ -59,47 +67,62 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        twitchLogin.getSettings().setJavaScriptEnabled(true);
         twitchLogin.loadUrl(TwitchApi.OAUTH_URL);
     }
 
+    /**
+     * @return Returns true if there exists an user already logged in.
+     */
     private boolean isLoggedIn() {
         return appDatabase.userDao().getUser() != null;
     }
 
-    private void fillUserData(final String accessToken) {
+    /**
+     * Opens a request to Twitch API to get user information.
+     * @param accessToken OAuth token required for communication with Twitch API
+     */
+    private void fillUserData(String accessToken) {
         Request request = new Request.Builder().url(TwitchApi.buildUsernameUrlString(accessToken)).build();
+        okHttpClient.newCall(request).enqueue(new UserLoginFeedback(accessToken));
+    }
 
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("LoginActivity", e.getMessage());
-            }
+    /**
+     *
+     */
+    private class UserLoginFeedback implements Callback {
 
-            @Override
-            public void onResponse(Call call, final Response response) {
-                if (response.isSuccessful()) {
-                    try {
+        private String accessToken;
 
-                        JSONObject doc = new JSONObject(response.body().string());
+        public UserLoginFeedback(String accessToken) {
+            this.accessToken = accessToken;
+        }
 
-                        User user = new User();
-                        user.id = doc.getInt("_id");
-                        user.name = doc.getString("name");
-                        user.displayName = doc.getString("display_name");
-                        user.accessToken = accessToken;
+        @Override
+        public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            Log.e("LoginActivity", e.getMessage());
+        }
 
-                        appDatabase.userDao().setUser(user);
+        @Override
+        public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+            if (response.isSuccessful()) {
+                try {
 
-                        openChat();
-                    } catch (Exception e) {
-                        Log.e("LoginMeme", e.getMessage());
-                    }
-                } else {
-                    return;
+                    JSONObject doc = new JSONObject(response.body().string());
+
+                    User user = new User();
+                    user.id = doc.getInt("_id");
+                    user.name = doc.getString("name");
+                    user.displayName = doc.getString("display_name");
+                    user.accessToken = accessToken;
+
+                    appDatabase.userDao().setUser(user);
+
+                    openChat();
+                } catch (Exception e) {
+                    Log.e("LoginMeme", e.getMessage());
                 }
             }
-        });
+        }
     }
 
     private void openChat() {
