@@ -16,38 +16,21 @@ import com.gikk.twirk.types.users.TwitchUser;
 
 public class IrcService extends Service {
 
-    private final IBinder mBinder = new LocalBinder();
-
     private User user;
-
-    public class LocalBinder extends Binder {
-        public IrcService getService() {
-            return IrcService.this;
-        }
-    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        user = Factory.getAppDatabase(IrcService.this).userDao().getUser();
+        user = Chattix.instance().getDatabase().userDao().getUser();
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return mBinder;
+        return null;
     }
 
     public void joinChannel(final String channel) {
-
-//        final Thread t = new Thread() {
-//            @Override
-//            public void run() {
-//
-//            }
-//        };
-//        t.start();
-
         final Twirk twirk = new TwirkBuilder(channel, user.name, "oauth" + user.accessToken).build();
 
         twirk.addIrcListener( new TwirkListenerBaseImpl() {

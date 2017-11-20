@@ -1,16 +1,19 @@
 package com.gempir.chattix;
 
+import android.annotation.SuppressLint;
+import android.arch.persistence.room.Room;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebViewClient;
 
 import okhttp3.*;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -21,108 +24,102 @@ import android.content.Intent;
 
 import com.gempir.chattix.persistence.AppDatabase;
 import com.gempir.chattix.persistence.User;
+import com.gempir.chattix.persistence.UserDao;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private OkHttpClient okHttpClient = new OkHttpClient();
+    private Chattix chattix;
+	
+	private AppDatabase database;
+	private TwitchAPI api;
 
-    private AppDatabase appDatabase = Factory.getAppDatabase(LoginActivity.this);
-
+    /**
+     * Regex used for obtaining OAuth Token from URL.
+     */
     private Pattern pattern = Pattern.compile("#access_token=(.*)&");
+
+    private interface IOAuthHandler {
+        void onOAuthReceived(String oauth);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        initDatabase();
+
         if (isLoggedIn()) {
             openChat();
         } else {
-            prepareLogin();
+            prepareLogin(new IOAuthHandler() {
+                @Override
+                public void onOAuthReceived(String oauth) {
+                    api = new TwitchAPI(oauth);
+					initChattix();
+					
+                    initUserData();
+                }
+            });
         }
+    }
+	
+	public void initChattix() {
+		Chattix.createInstance(api, database);
+	}
+
+    public void initDatabase() {
+        // TODO: If performance becomes a problem, its cause may be here. (allowMainThreadQueries)
+        database = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "chattixDB").allowMainThreadQueries().build();
+    }
+
+    /**
+     * Opens chat on successful user retrieval.
+     */
+    public void initUserData() {
+        api.retrieveUser(new IAPIHandler<User>() {
+            @Override
+            public void onSuccess(User data) {
+                openChat();
+            }
+        });
     }
 
     /**
      * Opens Twitch Login page in WebView for obtaining OAuth Token.
      */
-    private void prepareLogin() {
-        WebView twitchLogin = findViewById(R.id.twitchLogin);
-        twitchLogin.getSettings().setJavaScriptEnabled(true);
+    @SuppressLint("SetJavaScriptEnabled")
+    private void prepareLogin(final IOAuthHandler handler) {
+        final WebView webTwitchLogin = findViewById(R.id.twitchLogin);
+        webTwitchLogin.getSettings().setJavaScriptEnabled(true);
 
-        twitchLogin.setWebViewClient(new WebViewClient() {
+        webTwitchLogin.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Matcher matcher = pattern.matcher(request.getUrl().toString());
 
                 if (matcher.find()) {
-                    fillUserData(matcher.group(1));
+                    handler.onOAuthReceived(matcher.group(1));
+                    webTwitchLogin.stopLoading();
+                    webTwitchLogin.setVisibility(WebView.GONE);
                 }
 
                 return super.shouldOverrideUrlLoading(view, request);
             }
         });
 
-        twitchLogin.loadUrl(TwitchApi.OAUTH_URL);
+        webTwitchLogin.loadUrl(TwitchAPI.OAUTH_URL);
     }
 
     /**
      * @return Returns true if there exists an user already logged in.
      */
     private boolean isLoggedIn() {
-        return appDatabase.userDao().getUser() != null;
-    }
-
-    /**
-     * Opens a request to Twitch API to get user information.
-     * @param accessToken OAuth token required for communication with Twitch API
-     */
-    private void fillUserData(String accessToken) {
-        Request request = new Request.Builder().url(TwitchApi.buildUsernameUrlString(accessToken)).build();
-        okHttpClient.newCall(request).enqueue(new UserLoginFeedback(accessToken));
-    }
-
-    /**
-     *
-     */
-    private class UserLoginFeedback implements Callback {
-
-        private String accessToken;
-
-        public UserLoginFeedback(String accessToken) {
-            this.accessToken = accessToken;
-        }
-
-        @Override
-        public void onFailure(@NonNull Call call, @NonNull IOException e) {
-            Log.e("LoginActivity", e.getMessage());
-        }
-
-        @Override
-        public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-            // TODO Fix bug of redirection page appearing briefly.
-            if (response.isSuccessful()) {
-                try {
-
-                    JSONObject doc = new JSONObject(response.body().string());
-
-                    User user = new User();
-                    user.id = doc.getInt("_id");
-                    user.name = doc.getString("name");
-                    user.displayName = doc.getString("display_name");
-                    user.accessToken = accessToken;
-
-                    appDatabase.userDao().setUser(user);
-
-                    openChat();
-                } catch (Exception e) {
-                    Log.e("LoginMeme", e.getMessage());
-                }
-            }
-        }
+        return database.userDao().getUser() != null;
     }
 
     private void openChat() {
-        Intent myIntent = new Intent(LoginActivity.this, ChatActivity.class);
-        startActivity(myIntent);
+        Intent intent = new Intent(LoginActivity.this, ChatActivity.class);
+        startActivity(intent);
     }
 }

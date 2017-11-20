@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
@@ -24,10 +25,6 @@ import com.gempir.chattix.persistence.Channel;
 import java.util.List;
 
 public class ChatActivity extends AppCompatActivity {
-
-    private IrcService ircService;
-    private boolean ircBound = false;
-
     private ConstraintLayout chatLayout;
 
     @Override
@@ -35,18 +32,12 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-
-        Intent intent = new Intent(this, IrcService.class);
-        startService(intent);
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-
-
         chatLayout = findViewById(R.id.chatLayout);
         Button addChannel = findViewById(R.id.addChannel);
 
         loadChannels();
 
-        Factory.getAppDatabase(ChatActivity.this).channelsDao().getAllChannelsSync().observe(this, new Observer<List<Channel>>() {
+        Chattix.instance().getDatabase().channelsDao().getAllChannelsSync().observe(this, new Observer<List<Channel>>() {
             @Override
             public void onChanged(@Nullable List<Channel> channels) {
                 loadChannels();
@@ -83,7 +74,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private void loadChannels() {
 
-        List<Channel> channels = Factory.getAppDatabase(ChatActivity.this).channelsDao().getAllChannels();
+        List<Channel> channels = Chattix.instance().getDatabase().channelsDao().getAllChannels();
 
         TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.removeAllTabs();
@@ -102,30 +93,15 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void joinChannel(String channel) {
-        Channel channelObj = new Channel();
+        /*Channel channelObj = new Channel();
         channelObj.name = channel;
 
         ircService.joinChannel(channel);
-        Factory.getAppDatabase(ChatActivity.this).channelsDao().insertChannel(channelObj);
+        Factory.getAppDatabase(ChatActivity.this).channelsDao().insertChannel(channelObj);*/
     }
 
     private int dpToPx(int dp) {
         final float scale = getResources().getDisplayMetrics().density;
         return (int) (dp * scale + 0.5f);
     }
-
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            IrcService.LocalBinder binder = (IrcService.LocalBinder) service;
-            ircService = binder.getService();
-            ircBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            ircBound = false;
-        }
-    };
 }
