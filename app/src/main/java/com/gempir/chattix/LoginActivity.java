@@ -35,11 +35,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        TabLayout tabs = findViewById(R.id.tabs);
-        TabLayout.Tab loginTab = tabs.newTab();
-        loginTab.setText("Login");
-        tabs.addTab(loginTab);
-
         if (isLoggedIn()) {
             openChat();
         } else {
@@ -104,6 +99,7 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+            // TODO Fix bug of redirection page appearing briefly.
             if (response.isSuccessful()) {
                 try {
 
