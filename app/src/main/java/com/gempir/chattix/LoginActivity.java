@@ -3,28 +3,20 @@ package com.gempir.chattix;
 import android.annotation.SuppressLint;
 import android.arch.persistence.room.Room;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebViewClient;
 
-import okhttp3.*;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.Intent;
 
+import com.gempir.chattix.api.IAPIHandler;
+import com.gempir.chattix.api.TwitchAPI;
 import com.gempir.chattix.persistence.AppDatabase;
 import com.gempir.chattix.persistence.User;
-import com.gempir.chattix.persistence.UserDao;
 
 public class LoginActivity extends AppCompatActivity {
 

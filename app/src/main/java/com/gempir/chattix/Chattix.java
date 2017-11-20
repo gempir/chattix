@@ -2,10 +2,12 @@ package com.gempir.chattix;
 
 import android.util.Log;
 
+import com.gempir.chattix.api.TwitchAPI;
 import com.gempir.chattix.persistence.AppDatabase;
 
 /**
  * Source of truth.
+ * Contains objects for accessing APIs (currently Twitch, later FFZ/BTTV/etc.) and the database.
  */
 public class Chattix {
     private static Chattix instance;

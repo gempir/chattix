@@ -1,4 +1,4 @@
-package com.gempir.chattix;
+package com.gempir.chattix.api;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
