@@ -10,7 +10,7 @@ import static android.arch.persistence.room.OnConflictStrategy.REPLACE;
 public interface UserDao {
 
     @Insert(onConflict = REPLACE)
-    void setUser(User user);
+    void addUser(User user);
 
     @Query("SELECT * FROM User LIMIT 1")
     User getUser();
