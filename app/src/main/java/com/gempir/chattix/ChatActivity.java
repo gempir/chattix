@@ -71,18 +71,8 @@ public class ChatActivity extends AppCompatActivity implements ServiceConnection
                 input.setInputType(InputType.TYPE_CLASS_TEXT);
                 builder.setView(input);
 
-                builder.setPositiveButton("Join", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        joinChannel(input.getText().toString());
-                    }
-                });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
+                builder.setPositiveButton("Join", (dialog, which) -> joinChannel(input.getText().toString()));
+                builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
                 builder.show();
             }

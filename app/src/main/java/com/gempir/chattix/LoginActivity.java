@@ -2,28 +2,27 @@ package com.gempir.chattix;
 
 import android.annotation.SuppressLint;
 import android.arch.persistence.room.Room;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.webkit.WebView;
+import android.util.Log;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import android.content.Intent;
-
-import com.gempir.chattix.api.IAPIHandler;
 import com.gempir.chattix.api.TwitchAPI;
 import com.gempir.chattix.persistence.AppDatabase;
-import com.gempir.chattix.persistence.User;
+
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LoginActivity extends AppCompatActivity {
 
     private Chattix chattix;
-	
-	private AppDatabase database;
-	private TwitchAPI api;
+
+    private AppDatabase database;
+    private TwitchAPI api;
 
     /**
      * Regex used for obtaining OAuth Token from URL.
@@ -44,21 +43,17 @@ public class LoginActivity extends AppCompatActivity {
         if (isLoggedIn()) {
             openChat();
         } else {
-            prepareLogin(new IOAuthHandler() {
-                @Override
-                public void onOAuthReceived(String oauth) {
-                    api = new TwitchAPI(oauth);
-					initChattix();
-					
-                    initUserData();
-                }
+            prepareLogin(oauth -> {
+                api = new TwitchAPI(oauth);
+                initChattix();
+                initUserData();
             });
         }
     }
-	
-	public void initChattix() {
-		Chattix.createInstance(api, database);
-	}
+
+    public void initChattix() {
+        Chattix.createInstance(api, database);
+    }
 
     public void initDatabase() {
         // TODO: If performance becomes a problem, its cause may be here. (allowMainThreadQueries)
@@ -69,12 +64,7 @@ public class LoginActivity extends AppCompatActivity {
      * Opens chat on successful user retrieval.
      */
     public void initUserData() {
-        api.retrieveUser(new IAPIHandler<User>() {
-            @Override
-            public void onSuccess(User data) {
-                openChat();
-            }
-        });
+        api.retrieveUser(data -> openChat());
     }
 
     /**
@@ -87,19 +77,16 @@ public class LoginActivity extends AppCompatActivity {
 
         webTwitchLogin.setWebViewClient(new WebViewClient() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                Matcher matcher = pattern.matcher(request.getUrl().toString());
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                Matcher matcher = pattern.matcher(url);
 
                 if (matcher.find()) {
                     handler.onOAuthReceived(matcher.group(1));
-                    webTwitchLogin.stopLoading();
-                    webTwitchLogin.setVisibility(WebView.GONE);
                 }
 
-                return super.shouldOverrideUrlLoading(view, request);
+                return super.shouldOverrideUrlLoading(view, url);
             }
         });
-
         webTwitchLogin.loadUrl(TwitchAPI.OAUTH_URL);
     }
 
